@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/victorzhuplus/MaoJi/releases">
-    <img src="https://img.shields.io/github/downloads/victorzhuplus/MaoJi/total.svg?style=flat-square" alt="Downloads">
+  <a href="https://github.com/victorzhupro/MaoJi/releases">
+    <img src="https://img.shields.io/github/downloads/victorzhupro/MaoJi/total.svg?style=flat-square" alt="Downloads">
   </a>
-  <a href="https://github.com/victorzhuplus/MaoJi/releases/latest">
-    <img src="https://img.shields.io/github/v/release/victorzhuplus/MaoJi?style=flat-square" alt="Latest Release">
+  <a href="https://github.com/victorzhupro/MaoJi/releases/latest">
+    <img src="https://img.shields.io/github/v/release/victorzhupro/MaoJi?style=flat-square" alt="Latest Release">
   </a>
   <img src="https://img.shields.io/badge/.NET-8.0-purple?style=flat-square" alt=".NET 8.0">
   <img src="https://img.shields.io/badge/Platform-Windows-blue?style=flat-square" alt="Platform Windows">
@@ -80,7 +80,7 @@ MaoJi/
 
 ### 📥 下载安装
 
-1. 前往 [Releases](https://github.com/victorzhuplus/MaoJi/releases) 页面。
+1. 前往 [Releases](https://github.com/victorzhupro/MaoJi/releases) 页面。
 2. 下载最新版本的 `MaoJi.zip` (绿色版) 或 `MaoJi_Setup.exe` (安装版)。
 3. 解压或安装后即可运行（已内置运行环境，无需额外安装）。
 
@@ -90,7 +90,7 @@ MaoJi/
 
 1. 克隆仓库：
    ```bash
-   git clone https://github.com/victorzhuplus/MaoJi.git
+   git clone https://github.com/victorzhupro/MaoJi.git
    ```
 2. 使用 Visual Studio 2022 打开 `MaoJi.csproj`。
 3. 或者使用命令行构建：
@@ -101,7 +101,7 @@ MaoJi/
 
 ## 📈 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=victorzhuplus/MaoJi&type=Date)](https://star-history.com/#victorzhuplus/MaoJi&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=victorzhupro/MaoJi&type=Date)](https://star-history.com/#victorzhupro/MaoJi&Date)
 
 ---
 
