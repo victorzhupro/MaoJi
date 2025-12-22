@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# Publish
+Publish/
+Installer/
+PublishOutput/
+
+# IDE
+.trae/
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
