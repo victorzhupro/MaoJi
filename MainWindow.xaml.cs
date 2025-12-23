@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
@@ -10,6 +11,7 @@ using System.IO;
 using MaoJi.Models;
 using MaoJi.Services;
 using MaoJi.ViewModels;
+using MaoJi.Views;
 
 namespace MaoJi
 {
@@ -18,6 +20,7 @@ namespace MaoJi
         private MainViewModel ViewModel => (MainViewModel)DataContext;
         private DispatcherTimer? _topmostTimer;
         private WindowInteropHelper? _windowHelper;
+        private SearchHighlightAdorner? _searchAdorner;
 
         public MainWindow()
         {
@@ -99,6 +102,9 @@ namespace MaoJi
         {
             _windowHelper = new WindowInteropHelper(this);
             
+            // 初始化搜索高亮
+            InitializeSearchHighlights();
+            
             if (DataContext is MainViewModel viewModel)
             {
                 // 初始化置顶状态
@@ -106,6 +112,7 @@ namespace MaoJi
                 
                 // 监听属性变化
                 viewModel.PropertyChanged += ViewModel_PropertyChanged;
+                viewModel.SelectionRequested += ViewModel_SelectionRequested;
                 
                 // 如果置顶，启动定时器定期检查
                 if (viewModel.IsTopmost)
@@ -117,19 +124,29 @@ namespace MaoJi
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(MainViewModel.IsTopmost) && sender is MainViewModel viewModel)
+            if (sender is MainViewModel viewModel)
             {
-                // 先停止定时器（避免冲突）
-                StopTopmostTimer();
-                
-                // 立即更新置顶状态
-                UpdateTopmostState(viewModel.IsTopmost);
-                
-                // 根据置顶状态启动或停止定时器
-                if (viewModel.IsTopmost)
+                if (e.PropertyName == nameof(MainViewModel.IsTopmost))
                 {
-                    // 立即启动定时器
-                    StartTopmostTimer();
+                    // 先停止定时器（避免冲突）
+                    StopTopmostTimer();
+                    
+                    // 立即更新置顶状态
+                    UpdateTopmostState(viewModel.IsTopmost);
+                    
+                    // 根据置顶状态启动或停止定时器
+                    if (viewModel.IsTopmost)
+                    {
+                        // 立即启动定时器
+                        StartTopmostTimer();
+                    }
+                }
+                else if (e.PropertyName == nameof(MainViewModel.FindText) ||
+                         e.PropertyName == nameof(MainViewModel.IsCaseSensitive) ||
+                         e.PropertyName == nameof(MainViewModel.IsWholeWord) ||
+                         e.PropertyName == nameof(MainViewModel.IsFindReplaceVisible))
+                {
+                    UpdateSearchHighlights();
                 }
             }
         }
@@ -532,7 +549,77 @@ namespace MaoJi
 
         #endregion
 
+        private void FindPanel_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if ((bool)e.NewValue)
+            {
+                // 聚焦到搜索框
+                FindTextBox?.Focus();
+                FindTextBox?.SelectAll();
+            }
+            else
+            {
+                // 聚焦回编辑器
+                EditorTextBox?.Focus();
+            }
+        }
+
         #region 编辑器交互
+
+        private void InitializeSearchHighlights()
+        {
+            if (EditorTextBox != null)
+            {
+                var layer = AdornerLayer.GetAdornerLayer(EditorTextBox);
+                if (layer != null)
+                {
+                    _searchAdorner = new SearchHighlightAdorner(EditorTextBox);
+                    layer.Add(_searchAdorner);
+                }
+
+                // 监听滚动事件以更新高亮位置
+                EditorTextBox.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(EditorTextBox_ScrollChanged));
+                
+                // 监听文本变化
+                EditorTextBox.TextChanged += (s, e) => UpdateSearchHighlights();
+            }
+        }
+
+        private void EditorTextBox_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            _searchAdorner?.InvalidateVisual();
+        }
+
+        private void UpdateSearchHighlights()
+        {
+            if (_searchAdorner == null || ViewModel == null) return;
+
+            // 有查找文本时显示高亮（不再强制要求面板可见）
+            if (!string.IsNullOrEmpty(ViewModel.FindText))
+            {
+                _searchAdorner.Visibility = Visibility.Visible;
+                _searchAdorner.Update(ViewModel.FindText, ViewModel.IsCaseSensitive, ViewModel.IsWholeWord);
+            }
+            else
+            {
+                _searchAdorner.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void ViewModel_SelectionRequested(object? sender, (int Start, int Length) e)
+        {
+            if (EditorTextBox != null)
+            {
+                var textLen = EditorTextBox.Text?.Length ?? 0;
+                var safeStart = Math.Max(0, Math.Min(e.Start, textLen));
+                var safeLen = Math.Max(0, Math.Min(e.Length, Math.Max(0, textLen - safeStart)));
+                EditorTextBox.Select(safeStart, safeLen);
+                
+                // 确保可见
+                var lineIndex = EditorTextBox.GetLineIndexFromCharacterIndex(safeStart);
+                EditorTextBox.ScrollToLine(lineIndex);
+            }
+        }
 
         private void EditorTextBox_SelectionChanged(object sender, RoutedEventArgs e)
         {
@@ -544,6 +631,9 @@ namespace MaoJi
                 {
                     ViewModel.SelectedTab.CaretIndex = textBox.CaretIndex;
                 }
+                
+                // 更新搜索高亮（当前选中项变色）
+                _searchAdorner?.InvalidateVisual();
             }
         }
 
@@ -599,4 +689,3 @@ namespace MaoJi
         #endregion
     }
 }
-
