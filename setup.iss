@@ -3,6 +3,14 @@
 #define MyAppPublisher "Victor zhu"
 #define MyAppExeName "MaoJi.exe"
 
+#ifndef SourceDir
+  #define SourceDir "Publish"
+#endif
+
+#ifndef OutputFileName
+  #define OutputFileName "MaoJi_Setup"
+#endif
+
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
@@ -15,7 +23,7 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 OutputDir=Installer
-OutputBaseFilename=MaoJi_Setup
+OutputBaseFilename={#OutputFileName}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -28,7 +36,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; 确保在编译此前先运行 dotnet publish
-Source: "Publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Assets\cat_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; 如果有配置文件或其他资源，请在此处添加
 ; Source: "Publish\*.json"; DestDir: "{app}"; Flags: ignoreversion

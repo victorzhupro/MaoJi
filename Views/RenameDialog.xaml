@@ -2,26 +2,27 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="重命名文件" 
-        Height="150" 
+        Height="160" 
         Width="400"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        RenderOptions.BitmapScalingMode="HighQuality">
     
-    <Border CornerRadius="10" 
+    <Border CornerRadius="12" 
             Background="{DynamicResource WindowBackgroundBrush}"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="15" 
-                            ShadowDepth="2" 
-                            Opacity="0.3"
-                            Color="#000000"/>
+            <DropShadowEffect BlurRadius="24" 
+                            ShadowDepth="8" 
+                            Opacity="0.4"
+                            Color="{DynamicResource ShadowColor}"/>
         </Border.Effect>
         
-        <Grid Margin="20">
+        <Grid Margin="24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -33,18 +34,21 @@
             <TextBlock Grid.Row="0" 
                      Text="重命名文件" 
                      FontSize="16" 
-                     FontWeight="SemiBold"
+                     FontWeight="Bold"
                      Foreground="{DynamicResource PrimaryTextBrush}"
-                     Margin="0,0,0,16"/>
+                     Margin="0,0,0,20"/>
 
             <!-- 输入框 -->
             <StackPanel Grid.Row="1">
-                <TextBlock Text="新文件名：" 
-                         FontSize="12"
+                <TextBlock Text="新文件名" 
+                         FontSize="13"
+                         FontWeight="SemiBold"
                          Foreground="{DynamicResource SecondaryTextBrush}"
                          Margin="0,0,0,8"/>
                 <TextBox x:Name="FileNameTextBox"
                        Style="{DynamicResource SearchTextBoxStyle}"
+                       FontSize="14"
+                       Padding="10,8"
                        KeyDown="FileNameTextBox_KeyDown"/>
             </StackPanel>
 
@@ -52,20 +56,17 @@
             <StackPanel Grid.Row="3" 
                       Orientation="Horizontal" 
                       HorizontalAlignment="Right"
-                      Margin="0,20,0,0">
+                      Margin="0,24,0,0">
                 <Button Style="{DynamicResource ToolButtonStyle}"
                       Content="取消"
-                      Padding="20,8"
+                      Padding="16,8"
                       Click="CancelButton_Click"
                       Margin="0,0,12,0"/>
-                <Button Style="{DynamicResource ToolButtonStyle}"
+                <Button Style="{DynamicResource PrimaryButtonStyle}"
                       Content="确定"
-                      Padding="20,8"
-                      Click="OKButton_Click"
-                      Background="{DynamicResource PrimaryBrush}"
-                      Foreground="White"/>
+                      Padding="24,8"
+                      Click="OKButton_Click"/>
             </StackPanel>
         </Grid>
     </Border>
 </Window>
-

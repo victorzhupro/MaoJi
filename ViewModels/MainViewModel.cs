@@ -62,6 +62,17 @@ namespace MaoJi.ViewModels
 
         #endregion
 
+        #region 事件
+
+        public event EventHandler<(int Start, int Length)>? SelectionRequested;
+
+        private void RequestSelection(int start, int length)
+        {
+            SelectionRequested?.Invoke(this, (start, length));
+        }
+
+        #endregion
+
         public MainViewModel()
         {
             _autoSaveService = new AutoSaveService();
@@ -373,23 +384,42 @@ namespace MaoJi.ViewModels
             if (SelectedTab == null || string.IsNullOrEmpty(FindText)) return;
 
             var content = SelectedTab.Content;
-            var startIndex = SelectedTab.CaretIndex + 1;
+            var startIndex = Math.Min(content.Length, SelectedTab.CaretIndex + 1);
             
             var comparison = IsCaseSensitive 
                 ? StringComparison.Ordinal 
                 : StringComparison.OrdinalIgnoreCase;
 
             var index = content.IndexOf(FindText, startIndex, comparison);
+            if (IsWholeWord)
+            {
+                while (index >= 0 && !IsWholeWordMatch(content, index, FindText.Length))
+                {
+                    var nextStart = index + FindText.Length;
+                    if (nextStart > content.Length) break;
+                    index = content.IndexOf(FindText, nextStart, comparison);
+                }
+            }
             
             // 如果没找到，从头开始搜索
             if (index == -1 && startIndex > 0)
             {
                 index = content.IndexOf(FindText, 0, comparison);
+                if (IsWholeWord)
+                {
+                    while (index >= 0 && !IsWholeWordMatch(content, index, FindText.Length))
+                    {
+                        var nextStart = index + FindText.Length;
+                        if (nextStart > content.Length) break;
+                        index = content.IndexOf(FindText, nextStart, comparison);
+                    }
+                }
             }
 
             if (index >= 0)
             {
                 SelectedTab.CaretIndex = index;
+                RequestSelection(index, FindText.Length);
                 StatusText = $"找到: 位置 {index + 1}";
             }
             else
@@ -407,23 +437,42 @@ namespace MaoJi.ViewModels
             if (SelectedTab == null || string.IsNullOrEmpty(FindText)) return;
 
             var content = SelectedTab.Content;
-            var startIndex = Math.Max(0, SelectedTab.CaretIndex - 1);
+            var startIndex = Math.Min(Math.Max(0, SelectedTab.CaretIndex - 1), Math.Max(0, content.Length - 1));
             
             var comparison = IsCaseSensitive 
                 ? StringComparison.Ordinal 
                 : StringComparison.OrdinalIgnoreCase;
 
             var index = content.LastIndexOf(FindText, startIndex, comparison);
+            if (IsWholeWord)
+            {
+                while (index >= 0 && !IsWholeWordMatch(content, index, FindText.Length))
+                {
+                    var prevStart = index - 1;
+                    if (prevStart < 0) break;
+                    index = content.LastIndexOf(FindText, prevStart, comparison);
+                }
+            }
             
             // 如果没找到，从末尾开始搜索
             if (index == -1 && startIndex < content.Length)
             {
                 index = content.LastIndexOf(FindText, content.Length - 1, comparison);
+                if (IsWholeWord)
+                {
+                    while (index >= 0 && !IsWholeWordMatch(content, index, FindText.Length))
+                    {
+                        var prevStart = index - 1;
+                        if (prevStart < 0) break;
+                        index = content.LastIndexOf(FindText, prevStart, comparison);
+                    }
+                }
             }
 
             if (index >= 0)
             {
                 SelectedTab.CaretIndex = index;
+                RequestSelection(index, FindText.Length);
                 StatusText = $"找到: 位置 {index + 1}";
             }
             else
@@ -445,12 +494,23 @@ namespace MaoJi.ViewModels
                 ? StringComparison.Ordinal 
                 : StringComparison.OrdinalIgnoreCase;
 
-            var index = content.IndexOf(FindText, SelectedTab.CaretIndex, comparison);
+            var safeStart = Math.Min(SelectedTab.CaretIndex, content.Length);
+            var index = content.IndexOf(FindText, safeStart, comparison);
+            if (IsWholeWord)
+            {
+                while (index >= 0 && !IsWholeWordMatch(content, index, FindText.Length))
+                {
+                    var nextStart = index + FindText.Length;
+                    if (nextStart > content.Length) break;
+                    index = content.IndexOf(FindText, nextStart, comparison);
+                }
+            }
             
             if (index >= 0)
             {
                 SelectedTab.Content = content.Remove(index, FindText.Length).Insert(index, ReplaceText);
                 SelectedTab.CaretIndex = index + ReplaceText.Length;
+                RequestSelection(index, ReplaceText.Length);
                 StatusText = "已替换";
             }
             else
@@ -475,10 +535,17 @@ namespace MaoJi.ViewModels
             var count = 0;
             var index = 0;
             
-            while ((index = content.IndexOf(FindText, index, comparison)) >= 0)
+            while (true)
             {
-                content = content.Remove(index, FindText.Length).Insert(index, ReplaceText);
-                index += ReplaceText.Length;
+                var found = content.IndexOf(FindText, index, comparison);
+                if (found < 0) break;
+                if (IsWholeWord && !IsWholeWordMatch(content, found, FindText.Length))
+                {
+                    index = found + FindText.Length;
+                    continue;
+                }
+                content = content.Remove(found, FindText.Length).Insert(found, ReplaceText);
+                index = found + ReplaceText.Length;
                 count++;
             }
 
@@ -493,6 +560,15 @@ namespace MaoJi.ViewModels
             }
         }
 
+        private static bool IsWordChar(char c) => char.IsLetterOrDigit(c) || c == '_';
+        private static bool IsWholeWordMatch(string text, int index, int length)
+        {
+            var left = index - 1;
+            var right = index + length;
+            var leftOk = left < 0 || !IsWordChar(text[left]);
+            var rightOk = right >= text.Length || !IsWordChar(text[right]);
+            return leftOk && rightOk;
+        }
         #endregion
 
         #region 编辑操作
