@@ -625,11 +625,16 @@ namespace MaoJi
         {
             if (sender is TextBox textBox)
             {
-                ViewModel.UpdateCaretPosition(textBox.CaretIndex, textBox.Text);
+                var caretIndex = textBox.CaretIndex;
+                var lineIndex = textBox.GetLineIndexFromCharacterIndex(caretIndex);
+                var lineStartIndex = textBox.GetCharacterIndexFromLineIndex(lineIndex);
+                var column = caretIndex - lineStartIndex + 1;
+                
+                ViewModel.UpdateCaretPosition(lineIndex + 1, column);
                 
                 if (ViewModel.SelectedTab != null)
                 {
-                    ViewModel.SelectedTab.CaretIndex = textBox.CaretIndex;
+                    ViewModel.SelectedTab.CaretIndex = caretIndex;
                 }
                 
                 // 更新搜索高亮（当前选中项变色）
@@ -647,20 +652,31 @@ namespace MaoJi
         {
             if (_isClosingConfirmed) return;
 
+            // 确保如果有延迟的绑定更新，立即提交
+            EditorTextBox?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+
             // 1. 如果没有未保存的更改，直接关闭，不要设置 e.Cancel = true
             if (!ViewModel.HasUnsavedChanges)
             {
+                // 需要取消关闭操作以等待异步保存完成，然后手动关闭
+                e.Cancel = true;
+                
                 // 执行清理工作
                 StopTopmostTimer();
-                SettingsService.Instance.UpdateSettings(s =>
+                
+                await SettingsService.Instance.UpdateSettingsAsync(s =>
                 {
                     s.WindowWidth = Width;
                     s.WindowHeight = Height;
                     s.WindowLeft = Left;
                     s.WindowTop = Top;
                 });
+                
                 ViewModel.Cleanup();
-                return; // 允许关闭
+                
+                _isClosingConfirmed = true;
+                Close();
+                return;
             }
 
             // 2. 如果有未保存的更改，取消关闭并进行异步检查
@@ -670,7 +686,7 @@ namespace MaoJi
             StopTopmostTimer();
             
             // 保存窗口位置和大小
-            SettingsService.Instance.UpdateSettings(s =>
+            await SettingsService.Instance.UpdateSettingsAsync(s =>
             {
                 s.WindowWidth = Width;
                 s.WindowHeight = Height;

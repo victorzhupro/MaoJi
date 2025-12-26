@@ -62,17 +62,27 @@ namespace MaoJi.Services
             IsEnabled = settings.IsAutoSaveEnabled;
         }
 
+        private bool _isSaving;
+
         private async void OnAutoSaveTick(object? sender, EventArgs e)
         {
-            if (_getTabsFunc == null) return;
+            if (_getTabsFunc == null || _isSaving) return;
 
-            var tabs = _getTabsFunc();
-            foreach (var tab in tabs)
+            try
             {
-                if (tab.IsModified)
+                _isSaving = true;
+                var tabs = _getTabsFunc();
+                foreach (var tab in tabs)
                 {
-                    await AutoSaveTabAsync(tab);
+                    if (tab.IsModified)
+                    {
+                        await AutoSaveTabAsync(tab);
+                    }
                 }
+            }
+            finally
+            {
+                _isSaving = false;
             }
         }
 
