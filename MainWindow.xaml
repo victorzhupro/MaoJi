@@ -430,7 +430,7 @@
                 <AdornerDecorator>
                     <TextBox x:Name="EditorTextBox"
                            Style="{DynamicResource EditorTextBoxStyle}"
-                           Text="{Binding SelectedTab.Content, UpdateSourceTrigger=PropertyChanged}"
+                           Text="{Binding SelectedTab.Content, UpdateSourceTrigger=PropertyChanged, Delay=200}"
                            SelectionChanged="EditorTextBox_SelectionChanged"
                            SpellCheck.IsEnabled="False"/>
                 </AdornerDecorator>

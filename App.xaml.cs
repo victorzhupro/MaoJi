@@ -16,8 +16,7 @@ namespace MaoJi
 
         protected override void OnExit(ExitEventArgs e)
         {
-            // 保存设置
-            SettingsService.Instance.SaveSettings();
+            // 设置保存已移至 MainWindow_Closing 中异步执行
             base.OnExit(e);
         }
     }

@@ -576,30 +576,8 @@ namespace MaoJi.ViewModels
         /// <summary>
         /// 更新光标位置
         /// </summary>
-        public void UpdateCaretPosition(int caretIndex, string content)
+        public void UpdateCaretPosition(int line, int column)
         {
-            if (string.IsNullOrEmpty(content))
-            {
-                PositionText = "行: 1  列: 1";
-                return;
-            }
-
-            var line = 1;
-            var column = 1;
-            
-            for (int i = 0; i < caretIndex && i < content.Length; i++)
-            {
-                if (content[i] == '\n')
-                {
-                    line++;
-                    column = 1;
-                }
-                else
-                {
-                    column++;
-                }
-            }
-
             PositionText = $"行: {line}  列: {column}";
         }
 
