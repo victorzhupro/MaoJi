@@ -51,6 +51,23 @@ namespace MaoJi.Services
         }
 
         /// <summary>
+        /// 保存设置 (Async)
+        /// </summary>
+        public async Task SaveSettingsAsync()
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(_currentSettings, options);
+                await File.WriteAllTextAsync(_settingsPath, json);
+            }
+            catch (Exception)
+            {
+                // 忽略保存错误
+            }
+        }
+
+        /// <summary>
         /// 保存设置
         /// </summary>
         public void SaveSettings()
@@ -65,6 +82,15 @@ namespace MaoJi.Services
             {
                 // 忽略保存错误
             }
+        }
+
+        /// <summary>
+        /// 更新设置 (Async)
+        /// </summary>
+        public async Task UpdateSettingsAsync(Action<AppSettings> updateAction)
+        {
+            updateAction(_currentSettings);
+            await SaveSettingsAsync();
         }
 
         /// <summary>
